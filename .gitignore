@@ -1,5 +1,6 @@
 # Generated data artifacts — regenerable from staging sources, never committed
 catalog
 
-# Temporary clone + virtual environment created by scripts/fetch.sh
+# Clone + virtual environment created by scripts/fetch.sh; kept in place
+# between runs (not cleaned up) so the venv can be reused, never committed
 portolan-cli

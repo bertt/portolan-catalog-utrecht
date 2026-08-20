@@ -21,8 +21,10 @@ Utrecht https://services-eu1.arcgis.com/SMnoOtmU2UWf0vRp/ArcGIS/rest/services, u
 
 The script goes through the following steps:
 
-1. **Clone**: clones `portolan-cli` into a temporary directory `portolan-cli/`
-   next to this script.
+1. **Clone**: clones `portolan-cli` into `portolan-cli/` next to this script.
+   Skipped if `portolan-cli/.venv` already exists from a previous run — in
+   that case the existing clone and virtual environment are reused as-is
+   (steps 1–5 below are skipped, only the venv is activated).
 2. **Branch**: checks out branch `release/v1.0.0b0`.
 3. **Python environment**: creates a Python virtual environment (`.venv`) and
    activates it, so the installation stays isolated from the system.
@@ -56,14 +58,18 @@ The script goes through the following steps:
 8. **Shrinking**: runs `tools/shrink_parquet_files.sh` on the generated
    catalog data, to shrink parquet files larger than the size limit by
    simplifying geometries with DuckDB (`ST_Simplify`).
-9. **Cleanup**: removes the cloned `portolan-cli` code and the corresponding
-   Python virtual environment again, so only the generated catalog data in
-   `catalog/` remains. Cleanup always runs, even if a previous step logged
-   warnings.
+
+The cloned `portolan-cli/` code and its Python virtual environment are **not**
+cleaned up afterwards — they are left in place so that a subsequent run can
+reuse the existing virtual environment (skipping steps 1–5) instead of
+re-cloning and reinstalling dependencies every time. `portolan-cli/` is listed
+in `.gitignore`, so it is never committed. Delete it manually
+(`rm -rf portolan-cli`) if you want the next run to start from a clean clone
+and environment (e.g. after a `portolan-cli` release update).
 
 If any layer or service failed along the way, the script prints a summary
-warning and exits with a non-zero status **after** all steps (including
-cleanup) have completed, so a partial-but-usable catalog is never discarded.
+warning and exits with a non-zero status **after** all steps have completed,
+so a partial-but-usable catalog is never discarded.
 
 ### How the ArcGIS extraction fetches data (GeoJSON paging)
 
