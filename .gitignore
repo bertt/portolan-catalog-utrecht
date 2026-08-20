@@ -1,0 +1,6 @@
+# Generated data artifacts — regenerable from staging sources, never committed
+catalog/**/*.parquet
+catalog/**/*.pmtiles
+
+# Temporary clone + virtual environment created by scripts/fetch.sh
+/portolan-cli/
