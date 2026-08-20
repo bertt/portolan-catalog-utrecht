@@ -3,6 +3,16 @@
 This repository contains a Portolan catalog with geodata for the municipality
 of Utrecht, and the scripts used to generate and maintain it.
 
+### Usage
+
+```bash
+./scripts/fetch.sh
+```
+
+Requirements: `git`, `python3` (with the `venv` module), `tippecanoe` (for
+PMTiles generation) and a working `duckdb` CLI (see
+`tools/shrink_parquet_files.sh` for installation instructions).
+
 ## scripts/fetch.sh
 
 This script rebuilds the full catalog from the ArcGIS Online services of
@@ -154,16 +164,6 @@ quirks in the source services rather than a problem with this script or
 These are upstream data issues in the ArcGIS services, not bugs in
 `fetch.sh`; the affected layer is skipped, a warning is logged, and the rest
 of the catalog is still extracted normally.
-
-### Usage
-
-```bash
-./scripts/fetch.sh
-```
-
-Requirements: `git`, `python3` (with the `venv` module), `tippecanoe` (for
-PMTiles generation) and a working `duckdb` CLI (see
-`tools/shrink_parquet_files.sh` for installation instructions).
 
 ## tools/shrink_parquet_files.sh
 
