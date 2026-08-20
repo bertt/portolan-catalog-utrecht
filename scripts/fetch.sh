@@ -12,7 +12,8 @@
 #   1. Clone https://github.com/portolan-sdi/portolan-cli into a temporary directory.
 #   2. Checkout branch release/v1.0.0b0.
 #   3. Create a Python virtual environment and activate it.
-#   4. Install the Python dependencies of portolan-cli with pip.
+#   4. Install the Python dependencies of portolan-cli with pip, including the
+#      `pmtiles` extra (`portolan-cli[pmtiles]`), which is required for step 7.
 #   5. Force-install duckdb==1.5.5.
 #   6. Run `portolan extract arcgis ... <absolute catalog path> --license CC-BY-4.0 --auto`
 #      (existing catalog data is overwritten; --auto skips the interactive
@@ -21,11 +22,13 @@
 #      paths as a directory-traversal attempt). Individual layers can fail
 #      (e.g. malformed GeoJSON from the source service); such failures do not
 #      abort the whole script, they are reported as warnings instead.
-#   7. Run `portolan add --pmtiles` for every service (collection directory) in
-#      the catalog. This generates a PMTiles derivative per service together
-#      with its required style asset, so each service renders with correct
-#      styling. Requires tippecanoe on PATH. A failure for one service is
-#      reported as a warning; the remaining services are still processed.
+#   7. Check that the `pmtiles` extra (gpio-pmtiles, pmtiles) is installed,
+#      then run `portolan add --pmtiles` for every service (collection
+#      directory) in the catalog. This generates a PMTiles derivative per
+#      service together with its required style asset, so each service
+#      renders with correct styling. Requires tippecanoe on PATH. A failure
+#      for one service is reported as a warning; the remaining services are
+#      still processed.
 #   8. Run tools/shrink_parquet_files.sh on the generated catalog data.
 #   9. Clean up the cloned portolan-cli code and the virtual environment.
 #
@@ -80,7 +83,11 @@ source "${VENV_DIR}/bin/activate"
 pip install --upgrade pip
 
 echo "==> 4/9 Installing Python dependencies with pip"
-pip install -e "${CLONE_DIR}"
+# The [pmtiles] extra pulls in gpio-pmtiles (and the pmtiles package), which
+# are required by the "portolan add --pmtiles" step below. Without it, that
+# step fails with "gpio-pmtiles package not installed. Install with: pip
+# install portolan-cli[pmtiles]".
+pip install -e "${CLONE_DIR}[pmtiles]"
 
 echo "==> 5/9 Force-installing duckdb==1.5.5"
 pip install --force-reinstall duckdb==1.5.5
@@ -105,6 +112,11 @@ if (( EXTRACT_STATUS != 0 )); then
 fi
 
 echo "==> 7/9 Generating PMTiles per service"
+if ! python3 -c "import gpio_pmtiles, pmtiles" >/dev/null 2>&1; then
+    echo "    ERROR: the 'pmtiles' extra of portolan-cli is not installed." >&2
+    echo "    Install it with: pip install portolan-cli[pmtiles]" >&2
+    exit 1
+fi
 (
     cd "${CATALOG_DIR}"
     for SERVICE_DIR in */; do

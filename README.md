@@ -26,7 +26,10 @@ The script goes through the following steps:
 3. **Python environment**: creates a Python virtual environment (`.venv`) and
    activates it, so the installation stays isolated from the system.
 4. **Dependencies**: installs the Python dependencies of `portolan-cli` with
-   `pip install -e .`.
+   `pip install -e .[pmtiles]`. The `pmtiles` extra pulls in `gpio-pmtiles`
+   and `pmtiles`, which are required for the PMTiles generation step below;
+   without it, that step fails with `gpio-pmtiles package not installed.
+   Install with: pip install portolan-cli[pmtiles]`.
 5. **duckdb**: force-(re)installs version `duckdb==1.5.5`, regardless of the
    version pulled in as a dependency.
 6. **Extraction**: runs
@@ -42,8 +45,9 @@ The script goes through the following steps:
    layers fail (e.g. a source service returns malformed GeoJSON), the script
    does not abort: it logs a warning and continues with the layers that were
    extracted successfully.
-7. **PMTiles per service**: runs `portolan add <service> --pmtiles` for every
-   service (collection directory) found in the catalog. This generates a
+7. **PMTiles per service**: verifies the `pmtiles` extra (`gpio-pmtiles`,
+   `pmtiles`) is installed, then runs `portolan add <service> --pmtiles` for
+   every service (collection directory) found in the catalog. This generates a
    PMTiles derivative per service together with its required style asset, so
    every service renders with correct styling. Requires `tippecanoe` on PATH.
    A failure for one service is logged as a warning and does not stop the
@@ -164,6 +168,17 @@ quirks in the source services rather than a problem with this script or
 These are upstream data issues in the ArcGIS services, not bugs in
 `fetch.sh`; the affected layer is skipped, a warning is logged, and the rest
 of the catalog is still extracted normally.
+
+### Usage
+
+```bash
+./scripts/fetch.sh
+```
+
+Requirements: `git`, `python3` (with the `venv` module), `tippecanoe` (for
+PMTiles generation, installed via the `portolan-cli[pmtiles]` extra which
+provides `gpio-pmtiles`) and a working `duckdb` CLI (see
+`tools/shrink_parquet_files.sh` for installation instructions).
 
 ## tools/shrink_parquet_files.sh
 
